@@ -1,28 +1,21 @@
-import {
-  legacy_createStore,
-  combineReducers,
-  applyMiddleware,
-  compose,
-} from 'redux';
-import { combineEpics, createEpicMiddleware } from 'redux-observable';
-import skillsReducer from '../reducers/skills';
+import { configureStore, combineReducers } from '@reduxjs/toolkit';
+import { createEpicMiddleware, combineEpics } from 'redux-observable';
 import { changeSearchEpic, searchSkillsEpic } from '../epics';
+import skillsSlice from '../slice/skillsSlice';
 
 const reducer = combineReducers({
-  skills: skillsReducer,
+  skills: skillsSlice,
 });
-
-const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
-
-const epic = combineEpics(changeSearchEpic, searchSkillsEpic);
 
 const epicMiddleware = createEpicMiddleware();
 
-const store = legacy_createStore(
+const store = configureStore({
   reducer,
-  composeEnhancers(applyMiddleware(epicMiddleware))
-);
+  middleware: (getDefaultMiddleware) =>
+    getDefaultMiddleware({ thunk: false }).concat(epicMiddleware),
+});
 
-epicMiddleware.run(epic);
+export const rootEpic = combineEpics(changeSearchEpic, searchSkillsEpic);
+epicMiddleware.run(rootEpic);
 
 export default store;

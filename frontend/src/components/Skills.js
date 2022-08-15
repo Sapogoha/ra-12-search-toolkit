@@ -1,16 +1,24 @@
 import React from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { changeSearchField } from '../actions/actionCreators';
+import {
+  changeSearch,
+  selectSkills,
+  selectLoading,
+  selectError,
+  selectSearch,
+} from '../slice/skillsSlice';
 
 export default function Skills() {
-  const { items, loading, error, search } = useSelector(
-    (state) => state.skills
-  );
+  const search = useSelector(selectSearch);
+  const items = useSelector(selectSkills);
+  const loading = useSelector(selectLoading);
+  const error = useSelector(selectError);
+
   const dispatch = useDispatch();
 
   const handleSearch = (evt) => {
     const { value } = evt.target;
-    dispatch(changeSearchField(value));
+    dispatch(changeSearch(value));
   };
 
   const hasQuery = search.trim() !== '';
@@ -38,9 +46,8 @@ export default function Skills() {
             Your search - {search} - did not match any skills
           </div>
         )}
-        {error ? (
-          <div className="search-prompt">Error occured</div>
-        ) : (
+        {error && <div className="search-prompt">Error occured</div>}{' '}
+        {!error && !loading && (
           <ul>
             {items.map((o) => (
               <li className="search-item" key={o.id}>

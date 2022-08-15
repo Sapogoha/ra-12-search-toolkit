@@ -8,40 +8,40 @@ import {
   catchError,
   mergeMap,
 } from 'rxjs/operators';
-import types from '../actions/actionTypes';
-import {
-  searchSkillsRequest,
-  searchSkillsSuccess,
-  searchSkillsFailure,
-  resetSearchField,
-} from '../actions/actionCreators';
 import { of } from 'rxjs';
+
+import {
+  searchRequest,
+  searchFail,
+  searchSuccess,
+  reset,
+} from '../slice/skillsSlice';
 
 export const changeSearchEpic = (action$) =>
   action$.pipe(
-    ofType(types.changeSearch),
-    map((o) => o.payload.search.trim()),
+    ofType('skillsSlice/changeSearch'),
+    map((o) => o.payload.trim()),
     debounceTime(100),
     mergeMap((o) => {
       if (o === '') {
-        return of(resetSearchField());
+        return of(reset());
       } else {
-        return of(searchSkillsRequest(o));
+        return of(searchRequest(o));
       }
     })
   );
 
 export const searchSkillsEpic = (action$) =>
   action$.pipe(
-    ofType(types.searchRequest),
-    map((o) => o.payload.search),
+    ofType('skillsSlice/searchRequest'),
+    map((o) => o.payload),
     map((o) => new URLSearchParams({ q: o })),
 
     switchMap((o) =>
       ajax.getJSON(`${process.env.REACT_APP_SEARCH_URL}?${o}`).pipe(
         retry(3),
-        map((o) => searchSkillsSuccess(o)),
-        catchError((err) => of(searchSkillsFailure(err)))
+        map((o) => searchSuccess(o)),
+        catchError((err) => of(searchFail(err)))
       )
     )
   );
